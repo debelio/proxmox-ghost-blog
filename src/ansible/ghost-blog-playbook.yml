@@ -1,0 +1,199 @@
+---
+- name: Configure Ghost Blog Container
+  hosts: all
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ghost_domain: "{{ ansible_host }}"
+    ghost_port: 2368
+    ghost_user: ghost
+    ghost_dir: /var/www/ghost
+    mysql_ghost_password: "{{ vault_mysql_ghost_password }}"
+
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - gnupg
+          - ca-certificates
+          - software-properties-common
+          - mysql-server
+          - python3-pymysql
+          - nginx
+        state: present
+
+    - name: Install Node.js 22.x repository
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Install Ghost CLI globally
+      shell: npm install -g ghost-cli@latest
+      environment:
+        PATH: "{{ ansible_env.PATH }}:/usr/bin:/usr/local/bin"
+      register: ghost_cli_install
+
+    - name: Start and enable MySQL
+      systemd:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Start and enable Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Secure MySQL installation - set root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_ghost_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      ignore_errors: yes
+
+    - name: Create MySQL database for Ghost
+      mysql_db:
+        name: ghostdb
+        state: present
+        login_user: root
+        login_password: "{{ mysql_ghost_password }}"
+      ignore_errors: yes
+
+    - name: Create MySQL user for Ghost
+      mysql_user:
+        name: ghost
+        password: "{{ mysql_ghost_password }}"
+        priv: 'ghostdb.*:ALL'
+        state: present
+        login_user: root
+        login_password: "{{ mysql_ghost_password }}"
+      ignore_errors: yes
+
+    - name: Create ghost user (for management and Ghost CLI)
+      user:
+        name: "{{ ghost_user }}"
+        system: no
+        shell: /bin/bash
+        home: "/home/{{ ghost_user }}"
+        create_home: yes
+        groups: sudo
+        append: yes
+
+    - name: Allow ghost user passwordless sudo
+      copy:
+        dest: /etc/sudoers.d/ghost
+        content: |
+          ghost ALL=(ALL) NOPASSWD: /bin/systemctl, /bin/mv, /usr/bin/mkdir, /usr/bin/chown # uninstall requires '/bin/rm' as well
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Create Ghost directory
+      file:
+        path: "{{ ghost_dir }}"
+        state: directory
+        owner: "{{ ghost_user }}"
+        group: "{{ ghost_user }}"
+        mode: '0775'
+
+    - name: Install and configure Ghost
+      become_user: "{{ ghost_user }}"
+      shell: |
+        cd {{ ghost_dir }}
+        ghost install \
+          --url http://{{ ghost_domain }} \
+          --admin-url http://{{ ghost_domain }} \
+          --db mysql \
+          --dbhost localhost \
+          --dbuser ghost \
+          --dbpass {{ mysql_ghost_password }} \
+          --dbname ghostdb \
+          --process systemd \
+          --no-prompt \
+          --no-stack \
+          --no-setup-nginx \
+          --no-setup-ssl \
+          --port {{ ghost_port }} \
+          --ip 127.0.0.1
+
+    - name: Create custom Nginx configuration for Ghost
+      template:
+        src: ghost-nginx.conf.j2
+        dest: /etc/nginx/sites-available/ghost
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart nginx
+
+    - name: Enable Ghost Nginx site
+      file:
+        src: /etc/nginx/sites-available/ghost
+        dest: /etc/nginx/sites-enabled/ghost
+        state: link
+      notify: restart nginx
+
+    - name: Remove default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+
+    - name: Test Nginx configuration
+      shell: nginx -t
+      register: nginx_test_result
+      ignore_errors: yes
+
+    - name: Restart Nginx if configuration is valid
+      systemd:
+        name: nginx
+        state: restarted
+      when: nginx_test_result.rc == 0
+
+    - name: Get systemd service name
+      shell: |
+        ls /etc/systemd/system/ghost_*.service 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.service$//' || echo ""
+      register: ghost_service_name
+      ignore_errors: yes
+
+    - name: Start Ghost via systemctl
+      systemd:
+        name: "{{ ghost_service_name.stdout }}"
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      when: ghost_service_name.stdout != ""
+
+    - name: Test Ghost HTTP response (direct)
+      uri:
+        url: "http://127.0.0.1:{{ ghost_port }}"
+        method: GET
+        status_code: 200
+        timeout: 10
+      ignore_errors: yes
+
+    - name: Test Ghost HTTP response (via Nginx)
+      uri:
+        url: "http://{{ ansible_host }}"
+        method: GET
+        status_code: 200
+        timeout: 10
+      ignore_errors: yes
+
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
