@@ -1,0 +1,121 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "ansible@2.18.7": {
+      "last_modified": "2025-08-05T11:35:34Z",
+      "resolved": "github:NixOS/nixpkgs/a683adc19ff5228af548c6539dbc3440509bfed3#ansible",
+      "source": "devbox-search",
+      "version": "2.18.7",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kyl5jmqcf9vj16xavh742jc3jdjrka01-python3.13-ansible-core-2.18.7",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/ahgv5ar3a1p7qj0lka8kn5cqxwx188lr-python3.13-ansible-core-2.18.7-dist"
+            }
+          ],
+          "store_path": "/nix/store/kyl5jmqcf9vj16xavh742jc3jdjrka01-python3.13-ansible-core-2.18.7"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/sk42yvzbkcxykm99qs6r8q2ld7rk9zyi-python3.13-ansible-core-2.18.7",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/h2y0cy1g2qq2b8z0v08m1wqpm9wf8bz8-python3.13-ansible-core-2.18.7-dist"
+            }
+          ],
+          "store_path": "/nix/store/sk42yvzbkcxykm99qs6r8q2ld7rk9zyi-python3.13-ansible-core-2.18.7"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/n4ylz6wv52z6a3qsf42ww850mrd878cs-python3.13-ansible-core-2.18.7",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/d18hgxvm4hsc3njrv9ibyay2yfnyhw3b-python3.13-ansible-core-2.18.7-dist"
+            }
+          ],
+          "store_path": "/nix/store/n4ylz6wv52z6a3qsf42ww850mrd878cs-python3.13-ansible-core-2.18.7"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/p1iidhy3dpmgy3z83rwqqhr88vk3zd7v-python3.13-ansible-core-2.18.7",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/0rygjhshivvs5myg5yijvi32s6gb94r2-python3.13-ansible-core-2.18.7-dist"
+            }
+          ],
+          "store_path": "/nix/store/p1iidhy3dpmgy3z83rwqqhr88vk3zd7v-python3.13-ansible-core-2.18.7"
+        }
+      }
+    },
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2025-09-05T01:14:44Z",
+      "resolved": "github:NixOS/nixpkgs/ca77296380960cd497a765102eeb1356eb80fed0?lastModified=1757034884"
+    },
+    "opentofu@1.10.5": {
+      "last_modified": "2025-08-10T04:38:50Z",
+      "resolved": "github:NixOS/nixpkgs/641d909c4a7538f1539da9240dedb1755c907e40#opentofu",
+      "source": "devbox-search",
+      "version": "1.10.5",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/7mk9ipqrsjxx11nnbqgbbbj76ys80y8i-opentofu-1.10.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/7mk9ipqrsjxx11nnbqgbbbj76ys80y8i-opentofu-1.10.5"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9c49bm4lh6l1hxydr2z65kfiwpll34dp-opentofu-1.10.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9c49bm4lh6l1hxydr2z65kfiwpll34dp-opentofu-1.10.5"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/k94ci8zzp79dxyjnhf2qrd09bbg5wsxl-opentofu-1.10.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/k94ci8zzp79dxyjnhf2qrd09bbg5wsxl-opentofu-1.10.5"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/jlrmr3xzgjbbdnc10b6p857ifbyw79vi-opentofu-1.10.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/jlrmr3xzgjbbdnc10b6p857ifbyw79vi-opentofu-1.10.5"
+        }
+      }
+    }
+  }
+}

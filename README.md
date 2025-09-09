@@ -8,6 +8,9 @@ This PoC project automates the deployment of a Ghost blog in an LXC container on
 ghost-blog/
 ├── README.md
 ├── .gitignore
+├── .envrc                    # direnv environment configuration
+├── devbox.json               # devbox development environment
+├── devbox.lock               # devbox lockfile
 ├── provision.sh              # Main provisioning script
 ├── configure.sh              # Ghost configuration script
 ├── src/
@@ -27,12 +30,54 @@ ghost-blog/
 ## Prerequisites
 
 - **Proxmox VE environment** (tested with v.9.0.6)
-- **Terraform** or **OpenTofu** installed on your local machine
-- **Ansible** installed with required collections
-- **Proxmox provider** for Terraform
+- **devbox** (recommended) or manual tool installation
+- **direnv** (optional but recommended for environment management)
 - **API token** with sufficient permissions in Proxmox
 - **Container template** (Ubuntu 24.04) downloaded in Proxmox
 - **netcat (nc)** for connection testing
+
+### Development Environment Setup
+
+This project includes a **devbox** configuration for easy development environment setup.
+
+#### Option 1: Using devbox (Recommended)
+
+Install devbox and let it manage all dependencies:
+
+```bash
+# Install devbox if not already installed
+curl -fsSL https://get.jetify.com/devbox | bash
+
+# Enter the devbox shell (installs all dependencies automatically)
+devbox shell
+
+# Or use devbox run for one-off commands
+devbox run terraform --version
+```
+
+The devbox environment includes:
+- **OpenTofu 1.10.5** (Terraform-compatible)
+- **Ansible 2.18.7** with required collections
+- **direnv** for environment variable management
+
+#### Option 2: Manual Installation
+
+If not using devbox, install these tools manually:
+- **Terraform** (>= 1.13.1) or **OpenTofu** (>= 1.10.5)
+- **Ansible** (>= 2.18.7) with required collections
+- **Proxmox provider** for Terraform
+
+#### Option 3: Using direnv (Optional)
+
+If you have **direnv** installed, the `.envrc` file will automatically load the devbox environment when you enter the project directory:
+
+```bash
+# Allow direnv for this project (one-time setup)
+direnv allow
+
+# Environment will be automatically loaded when entering the directory
+cd /path/to/ghost-blog/
+```
 
 ## Setup Instructions
 
@@ -105,7 +150,12 @@ Key variables you may want to customize:
 
 Run the main provisioning script:
 ```bash
+# If using devbox
+devbox shell
 ./provision.sh
+
+# Or using devbox run
+devbox run ./provision.sh
 ```
 
 This script will:
@@ -125,6 +175,7 @@ export TF_VAR_pm_api_token_id='terraform@pve!ghostBlogProvision'
 export TF_VAR_pm_api_token_secret="your-token-secret"
 export TF_VAR_pm_api_url="https://your-proxmox-server:8006/api2/json"
 
+# The provision script automatically detects and uses either terraform or tofu.
 terraform init
 terraform plan
 terraform apply
@@ -139,7 +190,7 @@ export CONTAINER_IP=$(cd src/terraform && terraform output -raw container_ip | c
 
 ## What Gets Deployed
 
-### Infrastructure (via Terraform)
+### Infrastructure (via Terraform/OpenTofu)
 - **LXC Container** with Ubuntu 24.04
 - **4 CPU cores** and **2GB RAM**
 - **20GB storage** on ZFS
@@ -170,6 +221,8 @@ After successful deployment:
 
 ## File Descriptions
 
+- **[.envrc](.envrc)**: direnv configuration for automatic environment loading
+- **[devbox.json](devbox.json)**: Development environment configuration
 - **[provision.sh](provision.sh)**: Main script that orchestrates the entire deployment
 - **[configure.sh](configure.sh)**: Ansible automation script for Ghost setup
 - **[src/terraform/main.tf](src/terraform/main.tf)**: Terraform LXC container definition
